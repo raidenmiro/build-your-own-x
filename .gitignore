@@ -1,0 +1,9 @@
+## File system
+.DS_Store
+desktop.ini
+
+## Tool
+.valgrindrc
+.cargo
+
+/target
