@@ -2,10 +2,11 @@ mod bar;
 mod download;
 mod utils;
 
-use crate::download::http_download;
+use crate::download::{ftp_download, http_download};
+use crate::utils::throw_err;
 use clap::Parser;
 use clap::{ArgAction, arg};
-use failure::{Fallible, bail};
+use failure::Fallible;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -23,9 +24,17 @@ struct Args {
     #[arg(short_alias = 'q', long, alias = "quiet", action = ArgAction::SetTrue)]
     quiet_mode: bool,
 
-    /// Output file path (default: current directory)
+    /// Output file path
     #[arg(short_alias = 'O', long, alias = "file")]
     output: String,
+
+    /// View file headers
+    #[arg(short, long, action = ArgAction::SetTrue)]
+    headers: bool,
+
+    /// Timeout for the request in seconds
+    #[arg(short, long, default_value_t = 30)]
+    timeout: u64,
 }
 
 fn main() -> Fallible<()> {
@@ -35,7 +44,7 @@ fn main() -> Fallible<()> {
 
     match url.scheme() {
         "http" | "https" => http_download(url, &args),
-        "ftp" | "ftps" => unimplemented!(),
-        _ => bail!(format!("unsupported scheme {}", url.scheme())),
+        "ftp" | "ftps" => ftp_download(url, args.quiet_mode, &args.output),
+        _ => throw_err(format!("unsupported scheme: {}", url.scheme())),
     }
 }
